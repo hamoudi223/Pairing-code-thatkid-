@@ -1,77 +1,55 @@
-import express from 'express';
-import { useMultiFileAuthState, makeCacheableSignalKeyStore, fetchLatestBaileysVersion, generateRegistrationId } from '@whiskeysockets/baileys';
-import { makeWALegacySocket, useSingleFileLegacyAuthState, proto } from '@whiskeysockets/baileys';
-import { generatePairingCode } from '@whiskeysockets/baileys/lib/Utils';
-import http from 'http';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import makeWASocket, { useSingleFileAuthState } from '@whiskeysockets/baileys'
+import express from 'express'
+import cors from 'cors'
 
-const app = express();
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const app = express()
+app.use(cors())
+app.use(express.json())
 
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+const port = process.env.PORT || 3000
 
-let sock = null;
-let pairingInfo = null;
+// Stockage session dans fichier local
+const { state, saveState } = useSingleFileAuthState('./auth_info.json')
 
-app.post('/start-pairing', async (req, res) => {
-  const { phoneNumber } = req.body;
-  if (!phoneNumber) return res.status(400).json({ error: 'phoneNumber required' });
+let sock = null
 
-  if (sock) {
-    await sock.logout();
-    sock = null;
-    pairingInfo = null;
-  }
-
-  const { version } = await fetchLatestBaileysVersion();
-  const registrationId = generateRegistrationId();
-
-  sock = makeWALegacySocket({
-    version,
+async function startSock() {
+  sock = makeWASocket({
+    auth: state,
     printQRInTerminal: false,
-    auth: {
-      creds: {
-        registrationId,
-        // No session data yet
-      },
-      keys: makeCacheableSignalKeyStore(new Map()),
-    },
-  });
+  })
 
-  sock.ev.on('connection.update', update => {
-    if (update.qr) {
-      pairingInfo = update.qr;
-      // On QR = code de couplage textuel, tu peux envoyer ça au front
-      res.json({ pairingCode: update.qr });
-    }
-    if (update.connection === 'open') {
-      console.log('WhatsApp connected!');
-    }
-    if (update.connection === 'close') {
-      console.log('WhatsApp disconnected:', update.lastDisconnect?.error);
-      sock = null;
-      pairingInfo = null;
-    }
-  });
+  sock.ev.on('connection.update', (update) => {
+    const { connection } = update
+    console.log('Connection status:', connection)
+  })
 
-  // Demande de pairing par numéro à l'API Baileys n'est pas trivial,
-  // mais on peut afficher un code d'association (code pairing) via le QR textuel.
+  sock.ev.on('creds.update', saveState)
+}
 
-  // Comme la méthode "par numéro" n'est pas encore publique dans Baileys officielle,
-  // on simule en générant le code QR textuel (qui est un pairing code sous forme de texte).
+startSock()
 
-  // En résumé : la "méthode par numéro" n'est pas encore exposée simplement dans Baileys,
-  // et la plupart des bots utilisent le QR code standard.
+// Endpoint pour générer un code pairing (6 chiffres) et envoyer message WhatsApp
+app.post('/generate-code', async (req, res) => {
+  const { number } = req.body
+  if (!number) return res.status(400).json({ error: 'Numéro manquant' })
 
-  // Donc on te retourne ici ce code "pairing code" (texte du QR) pour copier.
+  // Génération code 6 chiffres aléatoire
+  const code = Math.floor(100000 + Math.random() * 900000).toString()
 
-});
+  try {
+    // Envoie message dans ton propre chat WhatsApp (ton numéro doit être connecté)
+    await sock.sendMessage(number + '@s.whatsapp.net', {
+      text: `Ton code de couplage est : ${code}`,
+    })
 
-// Démarrage du serveur
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server started on http://localhost:${PORT}`);
-});
+    res.json({ code })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Erreur lors de l\'envoi du message' })
+  }
+})
+
+app.listen(port, () => {
+  console.log(`Serveur démarré sur http://localhost:${port}`)
+})
