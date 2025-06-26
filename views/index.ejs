@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Générateur de Pairing Code</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="container">
+    <img src="<%= imageUrl %>" alt="Image site" class="header-image" />
+    <h1>Générateur de Pairing Code</h1>
+    <form action="/generate" method="POST">
+      <input
+        type="text"
+        name="phone"
+        placeholder="Entrez votre numéro (ex: +22395064497)"
+        value="<%= phone ? phone : '' %>"
+        required
+      />
+      <button type="submit">Générer</button>
+    </form>
+
+    <% if(error) { %>
+      <p class="error"><%= error %></p>
+    <% } %>
+
+    <% if(pairingCode) { %>
+      <div class="result">
+        <p><strong>Pairing Code généré :</strong></p>
+        <input type="text" id="pairingCode" value="<%= pairingCode %>" readonly />
+        <button onclick="copyCode()">Copier</button>
+      </div>
+    <% } %>
+  </div>
+
+  <script>
+    function copyCode() {
+      const codeInput = document.getElementById('pairingCode');
+      codeInput.select();
+      codeInput.setSelectionRange(0, 99999); 
+      navigator.clipboard.writeText(codeInput.value).then(() => {
+        alert('Code copié dans le presse-papiers !');
+      });
+    }
+  </script>
+</body>
+</html>
