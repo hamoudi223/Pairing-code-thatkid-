@@ -1,20 +1,15 @@
-# Utilise une image Node officielle
-FROM node:18-alpine
-
-# Définit le répertoire de travail
-WORKDIR /app
-
-# Copie les fichiers nécessaires
-COPY package*.json ./
-
-# Installe les dépendances
-RUN npm install
-
-# Copie tout le reste
-COPY . .
-
-# Expose le port
-EXPOSE 3000
-
-# Démarre l'application
-CMD ["npm", "start"]
+{
+  "name": "whatsapp-pairing-site",
+  "version": "1.0.0",
+  "description": "Site de génération de Pairing Code WhatsApp avec Baileys",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.6.0",
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "qrcode": "^1.5.3"
+  }
+}
