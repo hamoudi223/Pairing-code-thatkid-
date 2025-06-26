@@ -1,48 +1,64 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Générateur de Pairing Code</title>
-  <link rel="stylesheet" href="/style.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ᴛʜᴀᴛʙᴏᴛᴢ ᴘᴀɪʀɪɴɢ sɪᴛᴇ</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 2rem; background:#222; color:#eee; }
+  input, button { padding: 0.5rem; margin: 0.5rem 0; font-size: 1rem; }
+  button { cursor: pointer; }
+  #pairingCode { background:#333; padding:1rem; word-break: break-word; margin-top:1rem; }
+  #copyBtn { background: #0a74da; color: white; border: none; }
+  img { max-width: 200px; margin-bottom: 1rem; border-radius: 8px; }
+</style>
 </head>
 <body>
-  <div class="container">
-    <img src="https://files.catbox.moe/tr8qs8.jpg" alt="Illustration" class="banner"/>
-    <h1>Générateur de Pairing Code WhatsApp</h1>
-    <form id="pairingForm">
-      <input type="text" id="phone" placeholder="Ton numéro (ex : +22395064497)" required />
-      <button type="submit">Générer</button>
-    </form>
-    <div id="result" style="display: none;">
-      <p><strong>SESSION_ID :</strong></p>
-      <textarea id="output" readonly></textarea>
-      <button onclick="copyText()">Copier</button>
-    </div>
-  </div>
+  <img src="https://files.catbox.moe/tr8qs8.jpg" alt="Makima" />
+  <h1>ᴛʜᴀᴛʙᴏᴛᴢ ᴘᴀɪʀɪɴɢ sɪᴛᴇ</h1>
+  <label for="phoneNumber">Numéro WhatsApp (ex: +22395064497) :</label><br/>
+  <input type="text" id="phoneNumber" placeholder="+223XXXXXXXX" /><br/>
+  <button id="generateBtn">Générer le code de couplage</button>
+
+  <pre id="pairingCode"></pre>
+  <button id="copyBtn" style="display:none;">Copier le code</button>
+
   <script>
-    const form = document.getElementById('pairingForm');
-    const output = document.getElementById('output');
-    const result = document.getElementById('result');
+    const generateBtn = document.getElementById('generateBtn');
+    const pairingCodePre = document.getElementById('pairingCode');
+    const copyBtn = document.getElementById('copyBtn');
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const phone = document.getElementById('phone').value;
-      const res = await fetch('/api/pair', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone }),
-      });
-      const data = await res.json();
-      output.value = data.sessionId || 'Erreur';
-      result.style.display = 'block';
-    });
+    generateBtn.onclick = async () => {
+      const phoneNumber = document.getElementById('phoneNumber').value.trim();
+      if (!phoneNumber) {
+        alert("Entre un numéro valide");
+        return;
+      }
+      pairingCodePre.textContent = "Génération en cours...";
+      copyBtn.style.display = 'none';
 
-    function copyText() {
-      output.select();
-      document.execCommand('copy');
-      alert('Copié !');
-    }
+      try {
+        const res = await fetch('/start-pairing', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phoneNumber }),
+        });
+        const data = await res.json();
+        if (data.error) {
+          pairingCodePre.textContent = `Erreur: ${data.error}`;
+          return;
+        }
+        pairingCodePre.textContent = data.pairingCode || 'Aucun code reçu';
+        copyBtn.style.display = 'inline-block';
+      } catch (e) {
+        pairingCodePre.textContent = 'Erreur de communication avec le serveur';
+      }
+    };
+
+    copyBtn.onclick = () => {
+      navigator.clipboard.writeText(pairingCodePre.textContent);
+      alert('Code copié dans le presse-papier');
+    };
   </script>
 </body>
 </html>
