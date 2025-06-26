@@ -1,0 +1,13 @@
+{
+  "name": "pairing-site",
+  "version": "1.0.0",
+  "description": "Site de génération de code pairing WhatsApp",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "ejs": "^3.1.9"
+  }
+}
