@@ -1,40 +1,74 @@
 body {
-  font-family: 'Segoe UI', sans-serif;
-  background-color: #121212;
-  color: #fff;
+  font-family: Arial, sans-serif;
+  background: #121212;
+  color: #eee;
   text-align: center;
-  margin: 0;
-  padding: 0;
+  padding: 30px;
 }
 
 .container {
-  padding: 2rem;
-}
-
-.banner {
-  width: 180px;
-  border-radius: 15px;
-  margin-bottom: 20px;
-}
-
-input, button, textarea {
-  padding: 10px;
-  margin: 10px;
-  border-radius: 8px;
-  border: none;
-}
-
-input, textarea {
-  width: 80%;
   max-width: 400px;
+  margin: auto;
+  background: #222;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+h1 {
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 700;
+  margin-bottom: 10px;
+  letter-spacing: 3px;
+  color: #0ff;
+}
+
+.profile-pic {
+  width: 150px;
+  border-radius: 50%;
+  margin-bottom: 20px;
+  border: 3px solid #0ff;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 6px;
+  border: none;
+  font-size: 1rem;
 }
 
 button {
-  background-color: #00cc66;
-  color: white;
+  background: #0ff;
+  color: #000;
+  border: none;
+  padding: 10px 20px;
+  font-weight: 700;
+  font-size: 1rem;
+  border-radius: 6px;
   cursor: pointer;
 }
 
 button:hover {
-  background-color: #009944;
+  background: #0cc;
+}
+
+.error {
+  color: #f33;
+  margin-top: 10px;
+}
+
+.result {
+  margin-top: 20px;
+}
+
+textarea {
+  width: 100%;
+  height: 100px;
+  font-family: monospace;
+  font-size: 1rem;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  padding: 10px;
+  resize: none;
 }
