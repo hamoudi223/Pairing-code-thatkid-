@@ -2,63 +2,34 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>ᴛʜᴀᴛʙᴏᴛᴢ ᴘᴀɪʀɪɴɢ sɪᴛᴇ</title>
-<style>
-  body { font-family: Arial, sans-serif; margin: 2rem; background:#222; color:#eee; }
-  input, button { padding: 0.5rem; margin: 0.5rem 0; font-size: 1rem; }
-  button { cursor: pointer; }
-  #pairingCode { background:#333; padding:1rem; word-break: break-word; margin-top:1rem; }
-  #copyBtn { background: #0a74da; color: white; border: none; }
-  img { max-width: 200px; margin-bottom: 1rem; border-radius: 8px; }
-</style>
 </head>
 <body>
-  <img src="https://files.catbox.moe/tr8qs8.jpg" alt="Makima" />
-  <h1>ᴛʜᴀᴛʙᴏᴛᴢ ᴘᴀɪʀɪɴɢ sɪᴛᴇ</h1>
-  <label for="phoneNumber">Numéro WhatsApp (ex: +22395064497) :</label><br/>
-  <input type="text" id="phoneNumber" placeholder="+223XXXXXXXX" /><br/>
-  <button id="generateBtn">Générer le code de couplage</button>
+<h1>ᴛʜᴀᴛʙᴏᴛᴢ ᴘᴀɪʀɪɴɢ sɪᴛᴇ</h1>
+<input id="number" placeholder="Entrez votre numéro" />
+<button id="generate">Générer QR</button>
+<br /><br />
+<img id="qrImg" alt="QR Code WhatsApp" />
 
-  <pre id="pairingCode"></pre>
-  <button id="copyBtn" style="display:none;">Copier le code</button>
+<script>
+document.getElementById('generate').onclick = async () => {
+  const number = document.getElementById('number').value.trim()
+  if (!number) return alert('Entrez un numéro !')
 
-  <script>
-    const generateBtn = document.getElementById('generateBtn');
-    const pairingCodePre = document.getElementById('pairingCode');
-    const copyBtn = document.getElementById('copyBtn');
+  const res = await fetch('/generate-qr', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ number }),
+  })
+  const data = await res.json()
 
-    generateBtn.onclick = async () => {
-      const phoneNumber = document.getElementById('phoneNumber').value.trim();
-      if (!phoneNumber) {
-        alert("Entre un numéro valide");
-        return;
-      }
-      pairingCodePre.textContent = "Génération en cours...";
-      copyBtn.style.display = 'none';
-
-      try {
-        const res = await fetch('/start-pairing', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phoneNumber }),
-        });
-        const data = await res.json();
-        if (data.error) {
-          pairingCodePre.textContent = `Erreur: ${data.error}`;
-          return;
-        }
-        pairingCodePre.textContent = data.pairingCode || 'Aucun code reçu';
-        copyBtn.style.display = 'inline-block';
-      } catch (e) {
-        pairingCodePre.textContent = 'Erreur de communication avec le serveur';
-      }
-    };
-
-    copyBtn.onclick = () => {
-      navigator.clipboard.writeText(pairingCodePre.textContent);
-      alert('Code copié dans le presse-papier');
-    };
-  </script>
+  if (data.error) return alert(data.error)
+  if (data.qr) {
+    document.getElementById('qrImg').src = `data:image/png;base64,${data.qr}`
+  } else {
+    alert('QR non disponible.')
+  }
+}
+</script>
 </body>
 </html>
