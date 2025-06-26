@@ -1,38 +1,26 @@
-const makeWASocket = require('@adiwajshing/baileys').default;
-const { DisconnectReason, useSingleFileAuthState } = require('@adiwajshing/baileys');
-const { Boom } = require('@hapi/boom');
+const { default: makeWASocket, useSingleFileAuthState } = require("@whiskeysockets/baileys");
+const fs = require('fs');
 
-async function generatePairingCode(phoneNumber) {
-  return new Promise(async (resolve, reject) => {
-    // On utilise une auth temporaire en mémoire
-    const { state, saveState } = useSingleFileAuthState(`./auth_${phoneNumber}.json`);
-
+async function generatePairingCode(number) {
+    const { state, saveState } = useSingleFileAuthState(`./session/${number}.json`);
     const sock = makeWASocket({
-      printQRInTerminal: false,
-      auth: state,
-      getMessage: async () => ({}),
+        auth: state,
+        printQRInTerminal: false,
     });
 
     sock.ev.on('connection.update', (update) => {
-      const { connection, lastDisconnect, qr, pairingData } = update;
-      if (qr) {
-        // Le QR ne sera pas affiché mais on ignore
-      }
-      if (pairingData) {
-        // pairingData contient le code de couplage qu'on doit retourner
-        const pairingCode = Buffer.from(pairingData).toString('base64');
-        sock.logout().catch(() => {});
-        resolve(pairingCode);
-      }
-      if (connection === 'close') {
-        if (lastDisconnect.error && lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut) {
-          reject(lastDisconnect.error);
+        const { connection, pairingCode } = update;
+        if (connection === 'open') {
+            console.log('✅ Connected!');
         }
-      }
+        if (pairingCode) {
+            fs.writeFileSync(`./session/${number}.txt`, pairingCode);
+        }
     });
 
-    sock.ev.on('creds.update', saveState);
-  });
+    await sock.waitForConnectionUpdate(u => !!u.pairingCode);
+    const code = fs.readFileSync(`./session/${number}.txt`, 'utf-8');
+    return code;
 }
 
 module.exports = { generatePairingCode };
