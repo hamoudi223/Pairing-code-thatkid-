@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ᴛʜᴀᴛʙᴏᴛᴢ ᴘᴀɪʀɪɴɢ sɪᴛᴇ</title>
+<link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>ᴛʜᴀᴛʙᴏᴛᴢ ᴘᴀɪʀɪɴɢ sɪᴛᴇ</h1>
+    <img src="https://files.catbox.moe/tr8qs8.jpg" alt="Photo" class="profile-pic" />
+
+    <form action="/generate" method="POST" autocomplete="off">
+      <input type="text" name="number" placeholder="Entrez votre numéro (ex: +22395064497)" required />
+      <button type="submit">Générer le code de couplage</button>
+    </form>
+
+    <% if (error) { %>
+      <p class="error"><%= error %></p>
+    <% } %>
+
+    <% if (pairingCode) { %>
+      <div class="result">
+        <p><strong>Code de couplage généré :</strong></p>
+        <textarea readonly id="pairingCode"><%= pairingCode %></textarea>
+        <button id="copyBtn">Copier le code</button>
+      </div>
+    <% } %>
+  </div>
+
+  <script>
+    const copyBtn = document.getElementById('copyBtn');
+    if(copyBtn) {
+      copyBtn.onclick = () => {
+        const code = document.getElementById('pairingCode');
+        code.select();
+        code.setSelectionRange(0, 99999);
+        document.execCommand('copy');
+        copyBtn.textContent = 'Copié!';
+        setTimeout(() => { copyBtn.textContent = 'Copier le code'; }, 2000);
+      };
+    }
+  </script>
+</body>
+</html>
